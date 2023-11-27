@@ -26,8 +26,7 @@ warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
 
-def parse_args() -> None:
-    signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
+def parse_args(source,target,output) -> None:
     program = argparse.ArgumentParser(formatter_class=lambda prog: argparse.HelpFormatter(prog, max_help_position=100))
     program.add_argument('-s', '--source', help='select an source image', dest='source_path')
     program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
@@ -49,11 +48,13 @@ def parse_args() -> None:
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
 
+
     args = program.parse_args()
 
-    roop.globals.source_path = args.source_path
-    roop.globals.target_path = args.target_path
-    roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)
+
+    roop.globals.source_path = source
+    roop.globals.target_path = target
+    roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, output)
     roop.globals.headless = roop.globals.source_path is not None and roop.globals.target_path is not None and roop.globals.output_path is not None
     roop.globals.frame_processors = args.frame_processor
     roop.globals.keep_fps = args.keep_fps
@@ -205,8 +206,8 @@ def destroy() -> None:
     sys.exit()
 
 
-def run() -> None:
-    parse_args()
+def run(source,target,output) -> None:
+    parse_args(source,target,output)
     if not pre_check():
         return
     for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
